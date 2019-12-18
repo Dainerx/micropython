@@ -52,28 +52,30 @@ The Makefile provided does some extra preprocessing of the source,
 adds version information to the UICR region, puts the resulting
 firmware at build/firmware.hex, and includes some convenience targets.
 
-How to use
-==========
+Vittascience MicroPython
+=================================
 
-Upon reset you will have a REPL on the USB CDC serial port, with baudrate
-115200 (eg picocom /dev/ttyACM0 -b 115200).
+In Vittascience we provide our users with a lot of kits and sensors. MicroPython for the BBC micro:bit does not come up with these modules. Thus, on this repository we added all the frozen custom modules to the MicroPython source code. 
 
-Then try:
+## How to add custom modules to MicroPython.
+Follow this procedure step by step to generate a micropython run time hex with your modules included.
 
-    >>> import microbit
-    >>> microbit.display.scroll('hello!')
-    >>> microbit.button_a.is_pressed()
-    >>> dir(microbit)
+1. Write your set of modules and put them in a folder, (for instance `/your_folder_path`).
+2. Use [make-frozen.py tool](tools/make-frozen.py) to transform your `.py` modules to a `.c` file. `python make-frozen.py your_folder_path > frozen_module.c`
+3. Open frozen_module.c and check its the module name, you could probably change the module name in the file.
+4. Clone micropython for microbit and move your frozen_module.c to the source folder.
 
-Tab completion works and is very useful!
+        git clone https://github.com/vittascience/micropython
+        mv frozen_module.c source/py/
+5. Find the mpconfigport.h in micropython/inc/microbit/, open it and add 2 lines at line 30.
 
-Read our documentation here:
+        #define MICROPY_MODULE_FROZEN  (1)
+        #define MICROPY_MODULE_FROZEN_STR  (1)
 
-https://microbit-micropython.readthedocs.io/en/latest/
+> If you clone from vittascience's micropython repoistory this should be already there.
+6. Build your microbit micropython following these [steps](https://github.com/vittascience/micropython#micropython-for-the-bbc-microbit).
 
-You can also use the tools/pyboard.py script to run Python scripts directly
-from your PC, eg:
+> Make sure your GCC version is 6+ with c++11 standard or later. C++98 standard won't work.
+7. Find your `.hex` file in `micropython/build/xxxxxxxxxx/source/`
+8. Send it to microbit. Then open the REPL and type: `help('modules')`, you should see your module listed below if you do it right.
 
-    $ ./tools/pyboard.py /dev/ttyACM0 examples/conway.py
-
-Be brave! Break things! Learn and have fun!
